@@ -1,5 +1,5 @@
 #
-#  Copyright (c) 2016, The OpenThread Authors.
+#  Copyright (c) 2019, The OpenThread Authors.
 #  All rights reserved.
 #
 #  Redistribution and use in source and binary forms, with or without
@@ -26,34 +26,16 @@
 #  POSSIBILITY OF SUCH DAMAGE.
 #
 
-include $(abs_top_nlbuild_autotools_dir)/automake/pre.am
+set(COMMON_INCLUDES
+    ${OT_PUBLIC_INCLUDES}
+    ${PROJECT_SOURCE_DIR}/examples/platforms
+    ${PROJECT_SOURCE_DIR}/src/core
+)
 
-# Always package (e.g. for 'make dist') these subdirectories.
+if(OT_FTD)
+    include(ftd.cmake)
+endif()
 
-DIST_SUBDIRS                            = \
-    cli                                   \
-    mqtt-snpublish                        \
-    ncp                                   \
-    $(NULL)
-
-# Always build (e.g. for 'make all') these subdirectories.
-
-SUBDIRS                                 = \
-    $(NULL)
-
-if OPENTHREAD_ENABLE_EXECUTABLE
-if OPENTHREAD_ENABLE_CLI
-SUBDIRS                                += cli
-SUBDIRS                                += mqtt-snpublish
-endif
-
-if OPENTHREAD_ENABLE_NCP
-SUBDIRS                                += ncp
-else
-if OPENTHREAD_ENABLE_RADIO_ONLY
-SUBDIRS                                += ncp
-endif
-endif
-endif
-
-include $(abs_top_nlbuild_autotools_dir)/automake/post.am
+if(OT_MTD)
+    include(mtd.cmake)
+endif()

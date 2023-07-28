@@ -28,6 +28,7 @@
 
 if(OT_APP_CLI)
     add_subdirectory(cli)
+    add_subdirectory(mqtt-snpublish)
 endif()
 
 add_subdirectory(ncp)

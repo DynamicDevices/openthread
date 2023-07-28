@@ -1,5 +1,5 @@
 #
-#  Copyright (c) 2016, The OpenThread Authors.
+#  Copyright (c) 2020, The OpenThread Authors.
 #  All rights reserved.
 #
 #  Redistribution and use in source and binary forms, with or without
@@ -26,34 +26,27 @@
 #  POSSIBILITY OF SUCH DAMAGE.
 #
 
-include $(abs_top_nlbuild_autotools_dir)/automake/pre.am
+add_executable(ot-cli-ftd-mqttsn-publish
+    cli_uart.cpp
+    main.c
+)
 
-# Always package (e.g. for 'make dist') these subdirectories.
+target_include_directories(ot-cli-ftd-mqttsn-publish PRIVATE ${COMMON_INCLUDES})
 
-DIST_SUBDIRS                            = \
-    cli                                   \
-    mqtt-snpublish                        \
-    ncp                                   \
-    $(NULL)
+if(NOT DEFINED OT_PLATFORM_LIB_FTD)
+    set(OT_PLATFORM_LIB_FTD ${OT_PLATFORM_LIB})
+endif()
 
-# Always build (e.g. for 'make all') these subdirectories.
+target_link_libraries(ot-cli-ftd-mqttsn-publish PRIVATE
+    openthread-cli-ftd
+    ${OT_PLATFORM_LIB_FTD}
+    openthread-ftd
+    ${OT_PLATFORM_LIB_FTD}
+    openthread-cli-ftd
+    ${OT_MBEDTLS}
+    ot-config-ftd
+    ot-config
+)
 
-SUBDIRS                                 = \
-    $(NULL)
-
-if OPENTHREAD_ENABLE_EXECUTABLE
-if OPENTHREAD_ENABLE_CLI
-SUBDIRS                                += cli
-SUBDIRS                                += mqtt-snpublish
-endif
-
-if OPENTHREAD_ENABLE_NCP
-SUBDIRS                                += ncp
-else
-if OPENTHREAD_ENABLE_RADIO_ONLY
-SUBDIRS                                += ncp
-endif
-endif
-endif
-
-include $(abs_top_nlbuild_autotools_dir)/automake/post.am
+install(TARGETS ot-cli-ftd-mqttsn-publish
+    DESTINATION bin)
