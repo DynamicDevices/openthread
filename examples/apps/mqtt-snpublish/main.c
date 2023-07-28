@@ -304,11 +304,15 @@ pseudo_reset:
            }
            else
            {
+             static int count = 0;
+
              otLogWarnPlat("Client state %d", otMqttsnGetState(instance));
 
              // Publish message to the registered topic
              otLogWarnPlat("Publishing...");
-             const char* data = "{\"id\":1234, \"lat\":1.234, \"lon\",5.678, \"temp\":24.0}";
+             const char* strdata = "{\"id\":%s, \"count\":%d, \"status\":%s, \"batt\":%d, \"lat\":1.234, \"lon\",5.678, \"height\":1.23, \"temp\":24.0}";
+             const char data[128];
+             sprintf(data, strdata, "1234", count++, "P1", 100);
              int32_t length = strlen(data);
 
              otError err = otMqttsnPublish(instance, (const uint8_t*)data, length, kQos1, false, &_aTopic,
