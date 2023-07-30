@@ -64,7 +64,7 @@
 // Currently I have  MQTT-SMGateway build for udp6 running on a Raspberry Pi OTBR. This sets up wpan0 for the mesh and I have to set "MulticastIPv6If=wpan0" for this to work
 // Then I have taken one of the wpan0 IPv6 addresses as the gateway address....
 #define GATEWAY_PORT 10000
-#define GATEWAY_ADDRESS "fe80::1cd2:6b04:cece:c926"
+#define GATEWAY_ADDRESS "fe80::50a3:4a72:b06a:b3cd"
 
 #define CLIENT_ID "THREAD"
 #define CLIENT_PORT 10000
@@ -146,7 +146,7 @@ static void MqttsnConnect(otInstance *instance)
     otIp6Address address;
     otIp6AddressFromString(GATEWAY_ADDRESS, &address);
 
-    otLogWarnPlat("Connect");
+    otLogWarnPlat("Connect to %s:%d", GATEWAY_ADDRESS, GATEWAY_PORT);
 
     // Set MQTT-SN client configuration settings
     otMqttsnConfig config;
@@ -298,7 +298,7 @@ pseudo_reset:
         // Publish when scheduled time passed
         if (otInstanceGetUptime(instance) > sNextPublishAt)
         {
-	   if(otMqttsnGetState(instance) == kStateDisconnected)
+	   if(otMqttsnGetState(instance) == kStateDisconnected || otMqttsnGetState(instance)  == kStateLost)
            {
               MqttsnConnect(instance);
            }
