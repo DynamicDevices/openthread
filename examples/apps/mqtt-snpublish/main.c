@@ -146,7 +146,7 @@ static void MqttsnConnect(otInstance *instance)
     otIp6Address address;
     otIp6AddressFromString(GATEWAY_ADDRESS, &address);
 
-    otLogWarnPlat("Connect to %s:%d", GATEWAY_ADDRESS, GATEWAY_PORT);
+    otLogWarnPlat("Connect to %s, port: %d", GATEWAY_ADDRESS, GATEWAY_PORT);
 
     // Set MQTT-SN client configuration settings
     otMqttsnConfig config;
