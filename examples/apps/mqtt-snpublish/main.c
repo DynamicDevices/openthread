@@ -28,6 +28,7 @@
 
 #include <assert.h>
 #include <string.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 
@@ -64,7 +65,7 @@
 // Currently I have  MQTT-SMGateway build for udp6 running on a Raspberry Pi OTBR. This sets up wpan0 for the mesh and I have to set "MulticastIPv6If=wpan0" for this to work
 // Then I have taken one of the wpan0 IPv6 addresses as the gateway address....
 #define GATEWAY_PORT 10000
-#define GATEWAY_ADDRESS "fe80::50a3:4a72:b06a:b3cd"
+#define GATEWAY_ADDRESS "fe80::470:1a11:cb45:fe6"
 
 #define CLIENT_ID "THREAD"
 #define CLIENT_PORT 10000
@@ -103,7 +104,7 @@ static void HandlePublished(otMqttsnReturnCode aCode, void* aContext)
     otLogWarnPlat("Published");
 }
 
-const otMqttsnTopic _aTopic;
+otMqttsnTopic _aTopic;
 
 static void HandleRegistered(otMqttsnReturnCode aCode, const otMqttsnTopic* aTopic, void* aContext)
 {
@@ -311,7 +312,7 @@ pseudo_reset:
              // Publish message to the registered topic
              otLogWarnPlat("Publishing...");
              const char* strdata = "{\"id\":%s, \"count\":%d, \"status\":%s, \"batt\":%d, \"lat\":1.234, \"lon\",5.678, \"height\":1.23, \"temp\":24.0}";
-             const char data[128];
+             char data[128];
              sprintf(data, strdata, "1234", count++, "P1", 100);
              int32_t length = strlen(data);
 
