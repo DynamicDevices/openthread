@@ -26,10 +26,16 @@
 #  POSSIBILITY OF SUCH DAMAGE.
 #
 
-if(OT_APP_CLI)
-    add_subdirectory(cli)
-    add_subdirectory(mqtt-snpublish)
-    add_subdirectory(mqtt-snsearchgw)
+set(COMMON_INCLUDES
+    ${OT_PUBLIC_INCLUDES}
+    ${PROJECT_SOURCE_DIR}/examples/platforms
+    ${PROJECT_SOURCE_DIR}/src/core
+)
+
+if(OT_FTD)
+    include(ftd.cmake)
 endif()
 
-add_subdirectory(ncp)
+if(OT_MTD)
+    include(mtd.cmake)
+endif()

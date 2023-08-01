@@ -1,5 +1,5 @@
 #
-#  Copyright (c) 2019, The OpenThread Authors.
+#  Copyright (c) 2020, The OpenThread Authors.
 #  All rights reserved.
 #
 #  Redistribution and use in source and binary forms, with or without
@@ -26,10 +26,27 @@
 #  POSSIBILITY OF SUCH DAMAGE.
 #
 
-if(OT_APP_CLI)
-    add_subdirectory(cli)
-    add_subdirectory(mqtt-snpublish)
-    add_subdirectory(mqtt-snsearchgw)
+add_executable(ot-cli-ftd-mqttsn-searchgw
+    cli_uart.cpp
+    main.c
+)
+
+target_include_directories(ot-cli-ftd-mqttsn-searchgw PRIVATE ${COMMON_INCLUDES})
+
+if(NOT DEFINED OT_PLATFORM_LIB_FTD)
+    set(OT_PLATFORM_LIB_FTD ${OT_PLATFORM_LIB})
 endif()
 
-add_subdirectory(ncp)
+target_link_libraries(ot-cli-ftd-mqttsn-searchgw PRIVATE
+    openthread-cli-ftd
+    ${OT_PLATFORM_LIB_FTD}
+    openthread-ftd
+    ${OT_PLATFORM_LIB_FTD}
+    openthread-cli-ftd
+    ${OT_MBEDTLS}
+    ot-config-ftd
+    ot-config
+)
+
+install(TARGETS ot-cli-ftd-mqttsn-searchgw
+    DESTINATION bin)
