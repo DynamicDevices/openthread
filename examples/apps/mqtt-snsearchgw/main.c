@@ -61,13 +61,13 @@
 #define MASTER_KEY {0x33, 0x33, 0x44, 0x44, 0x33, 0x33, 0x44, 0x44, 0x33, 0x33, 0x44, 0x44, 0x33, 0x33, 0x44, 0x44}
 
 #define GATEWAY_MULTICAST_PORT 10000
-#define GATEWAY_MULTICAST_ADDRESS "ff05::1"
+#define GATEWAY_MULTICAST_ADDRESS "ff03::1"
 #define GATEWAY_MULTICAST_RADIUS 8
 
 #define CLIENT_ID "THREAD"
-#define CLIENT_PORT 1883
+#define CLIENT_PORT 10000
 
-#define TOPIC_NAME "sensors"
+#define TOPIC_PREFIX "sensors"
 
 static const uint8_t sExpanId[] = EXTPANID;
 static const uint8_t sMasterKey[] = MASTER_KEY;
@@ -128,10 +128,26 @@ static void HandleConnected(otMqttsnReturnCode aCode, void* aContext)
     {
         otLogWarnPlat("HandleConnected -Accepted");
 
-        otLogWarnPlat("Registering Topic");
+        // Get ID
+        otExtAddress extAddress;
+        otLinkGetFactoryAssignedIeeeEui64(instance, &extAddress);
+
+        char data[128];
+        sprintf(data, "%s/%02x%02x%02x%02x%02x%02x%02x%02x", TOPIC_PREFIX,
+		extAddress.m8[0],
+		extAddress.m8[1],
+		extAddress.m8[2],
+		extAddress.m8[3],
+		extAddress.m8[4],
+		extAddress.m8[5],
+		extAddress.m8[6],
+		extAddress.m8[7]
+        );
+
+        otLogWarnPlat("Registering Topic: %s", data);
 
         // Obtain target topic ID
-        otMqttsnRegister(instance, TOPIC_NAME, HandleRegistered, (void *)instance);
+        otMqttsnRegister(instance, data, HandleRegistered, (void *)instance);
     }
     else
     {
@@ -280,11 +296,24 @@ int main(int aArgc, char *aArgv[])
 
              otLogWarnPlat("Client state %d", otMqttsnGetState(instance));
 
+             // Get ID
+             otExtAddress extAddress;
+             otLinkGetFactoryAssignedIeeeEui64(instance, &extAddress);
+
              // Publish message to the registered topic
              otLogWarnPlat("Publishing...");
-             const char* strdata = "{\"id\":%s, \"count\":%d, \"status\":%s, \"batt\":%d, \"lat\":1.234, \"lon\",5.678, \"height\":1.23, \"temp\":24.0}";
+             const char* strdata = "{\"id\":%02x%02x%02x%02x%02x%02x%02x%02x, \"count\":%d, \"status\":%s, \"batt\":%d, \"lat\":1.234, \"lon\",5.678, \"height\":1.23, \"temp\":24.0}";
              char data[128];
-             sprintf(data, strdata, "1234", count++, "P1", 100);
+             sprintf(data, strdata,
+		extAddress.m8[0],
+		extAddress.m8[1],
+		extAddress.m8[2],
+		extAddress.m8[3],
+		extAddress.m8[4],
+		extAddress.m8[5],
+		extAddress.m8[6],
+		extAddress.m8[7],
+		count++, "P1", 100);
              int32_t length = strlen(data);
 
              otError err = otMqttsnPublish(instance, (const uint8_t*)data, length, kQos1, false, &_aTopic,
