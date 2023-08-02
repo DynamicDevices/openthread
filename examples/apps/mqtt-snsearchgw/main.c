@@ -64,7 +64,7 @@
 #define GATEWAY_MULTICAST_ADDRESS "ff03::1"
 #define GATEWAY_MULTICAST_RADIUS 8
 
-#define CLIENT_ID "THREAD"
+#define CLIENT_PREFIX "tc-"
 #define CLIENT_PORT 10000
 
 #define TOPIC_PREFIX "sensors"
@@ -167,7 +167,23 @@ static void HandleSearchGw(const otIp6Address* aAddress, uint8_t aGatewayId, voi
     otIp6Address address = *aAddress;
     // Set MQTT-SN client configuration settings
     otMqttsnConfig config;
-    config.mClientId = CLIENT_ID;
+
+    otExtAddress extAddress;
+    otLinkGetFactoryAssignedIeeeEui64(instance, &extAddress);
+
+    char data[256];
+    sprintf(data, "%s-%02x%02x%02x%02x%02x%02x%02x%02x", CLIENT_PREFIX,
+                extAddress.m8[0],
+                extAddress.m8[1],
+                extAddress.m8[2],
+                extAddress.m8[3],
+                extAddress.m8[4],
+                extAddress.m8[5],
+                extAddress.m8[6],
+                extAddress.m8[7]
+    );
+
+    config.mClientId = data;
     config.mKeepAlive = 30;
     config.mCleanSession = true;
     config.mPort = GATEWAY_MULTICAST_PORT;
