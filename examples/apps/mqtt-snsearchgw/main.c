@@ -286,9 +286,9 @@ int main(int aArgc, char *aArgv[])
         if (otInstanceGetUptime(instance) > sNextPublishAt)
         {
            if(otMqttsnGetState(instance) == kStateDisconnected || otMqttsnGetState(instance)  == kStateLost)
-
            {
-//              MqttsnConnect(instance);
+             otLogWarnPlat("MQTT g/w disconnected or lost: %d", otMqttsnGetState(instance) );
+             SearchGateway(instance);
            }
            else
            {
