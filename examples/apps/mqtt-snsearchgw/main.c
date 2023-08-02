@@ -303,7 +303,7 @@ int main(int aArgc, char *aArgv[])
              // Publish message to the registered topic
              otLogWarnPlat("Publishing...");
              const char* strdata = "{\"id\":%02x%02x%02x%02x%02x%02x%02x%02x, \"count\":%d, \"status\":%s, \"batt\":%d, \"lat\":1.234, \"lon\",5.678, \"height\":1.23, \"temp\":24.0}";
-             char data[128];
+             char data[256];
              sprintf(data, strdata,
 		extAddress.m8[0],
 		extAddress.m8[1],
@@ -317,9 +317,9 @@ int main(int aArgc, char *aArgv[])
              int32_t length = strlen(data);
 
              otError err = otMqttsnPublish(instance, (const uint8_t*)data, length, kQos1, false, &_aTopic,
-
                HandlePublished, NULL);
-             otLogWarnPlat("Publishing rsp %d", err);
+
+             otLogWarnPlat("Publishing %d bytes rsp %d", length, err);
            }
 
            sNextPublishAt = otInstanceGetUptime(instance) + PUBLISH_INTERVAL_MS;
