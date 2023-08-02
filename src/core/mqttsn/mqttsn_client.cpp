@@ -377,6 +377,8 @@ void MqttsnClient::HandleUdpReceive(void *aContext, otMessage *aMessage, const o
 
     unsigned char data[MAX_PACKET_SIZE];
 
+    LogDebg("UDP message received Entry");
+
     if (length > MAX_PACKET_SIZE)
     {
         return;
@@ -615,8 +617,8 @@ void MqttsnClient::AdvertiseReceived(const Ip6::MessageInfo &messageInfo, const 
     }
 
     LogDebg("received advertise from %s[%u]: gateway_id=%u, keepalive=%u",
-            messageInfo.GetPeerAddr().ToString().AsCString(), (uint32_t)messageInfo.GetPeerPort(),
-            (uint32_t)advertiseMessage.GetGatewayId(), (uint32_t)advertiseMessage.GetDuration());
+            messageInfo.GetPeerAddr().ToString().AsCString(), (unsigned int)messageInfo.GetPeerPort(),
+            (unsigned int)advertiseMessage.GetGatewayId(), (unsigned int)advertiseMessage.GetDuration());
     // Multiply duration by 1.2 to minimize timing error probability and multiply by 1000
     // to milliseconds
     uint32_t duration = (advertiseMessage.GetDuration() * 12 * 1000) / 10;
@@ -1069,6 +1071,8 @@ void MqttsnClient::DisconnectReceived(const Ip6::MessageInfo &messageInfo, const
 
 void MqttsnClient::SearchGwReceived(const Ip6::MessageInfo &messageInfo, const unsigned char* data, uint16_t length)
 {
+   LogDebg("SearchGwReceived");
+
 #if OPENTHREAD_FTD
     SearchGwMessage searchGwMessage;
     // Do not respond to SEARCHGW messages when client not active
@@ -1546,6 +1550,8 @@ otError MqttsnClient::SetAdvertiseCallback(otMqttsnAdvertiseHandler aCallback, v
 
 otError MqttsnClient::SetSearchGwCallback(otMqttsnSearchgwHandler aCallback, void* aContext)
 {
+    LogDebg("Set Search GW");
+
     mSearchGwCallback = aCallback;
     mSearchGwContext = aContext;
     return OT_ERROR_NONE;
