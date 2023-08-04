@@ -54,6 +54,12 @@
 
 #include "lib/platform/reset_util.h"
 
+#include <openthread/instance.h>
+#include <openthread/thread.h>
+#include <openthread/thread_ftd.h>
+#include <string.h>
+#include <openthread/dataset_ftd.h>
+
 #define NETWORK_NAME "OTBR4444"
 #define PANID 0x4444
 #define EXTPANID {0x33, 0x33, 0x33, 0x33, 0x44, 0x44, 0x44, 0x44}
@@ -67,14 +73,14 @@
 #define CLIENT_PREFIX "tc-"
 #define CLIENT_PORT 10000
 
-#define TOPIC_PREFIX "sensors"
+#define TOPIC_PREFIX "ot/Shreya"
 
 static const uint8_t sExpanId[] = EXTPANID;
 static const uint8_t sMasterKey[] = MASTER_KEY;
 
 // Maximal awake time
 static uint64_t sNextPublishAt = 0xffffffff;
-#define PUBLISH_INTERVAL_MS 10000
+#define PUBLISH_INTERVAL_MS 2000
 
 /**
  * This function initializes the CLI app.
@@ -99,6 +105,7 @@ static void HandlePublished(otMqttsnReturnCode aCode, void* aContext)
 
     // Handle published
     otLogWarnPlat("Published");
+    otSysLedToggle(4);
 }
 
 otMqttsnTopic _aTopic;
@@ -216,13 +223,41 @@ static void StateChanged(otChangedFlags aFlags, void *aContext)
      otLogWarnPlat("State Changed");
 
     // when thread role changed
-    if (aFlags & OT_CHANGED_THREAD_ROLE)
+    if ((aFlags & OT_CHANGED_THREAD_ROLE) != 0)
     {
-        otDeviceRole role = otThreadGetDeviceRole(instance);
+        otDeviceRole changedRole = otThreadGetDeviceRole(instance);
         // If role changed to any of active roles then send SEARCHGW message
-        if (role == OT_DEVICE_ROLE_CHILD || role == OT_DEVICE_ROLE_ROUTER)
+        if (changedRole == OT_DEVICE_ROLE_CHILD || changedRole == OT_DEVICE_ROLE_ROUTER)
         {
             SearchGateway(instance);
+        }
+
+        switch (changedRole)
+        {
+            case OT_DEVICE_ROLE_LEADER:
+                otSysLedSet(1, true);
+                otSysLedSet(2, false);
+                otSysLedSet(3, false);
+                break;
+
+            case OT_DEVICE_ROLE_ROUTER:
+                otSysLedSet(1, false);
+                otSysLedSet(2, true);
+                otSysLedSet(3, false);
+                break;
+
+            case OT_DEVICE_ROLE_CHILD:
+                otSysLedSet(1, false);
+                otSysLedSet(2, false);
+                otSysLedSet(3, true);
+                break;
+
+            case OT_DEVICE_ROLE_DETACHED:
+            case OT_DEVICE_ROLE_DISABLED:
+                otSysLedToggle(1);
+                otSysLedToggle(2);
+                otSysLedToggle(3);
+                break;
         }
     }
 }
@@ -254,6 +289,9 @@ int main(int aArgc, char *aArgv[])
     assert(instance);
 
     otAppCliInit(instance);
+
+    /* init GPIO LEDs */
+    otSysLedInit();
 
 #if OPENTHREAD_POSIX && !defined(FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION)
     otCliSetUserCommands(kCommands, OT_ARRAY_LENGTH(kCommands), instance);
@@ -318,7 +356,14 @@ int main(int aArgc, char *aArgv[])
 
              // Publish message to the registered topic
              otLogWarnPlat("Publishing...");
-             const char* strdata = "{\"id\":%02x%02x%02x%02x%02x%02x%02x%02x, \"count\":%d, \"status\":%s, \"batt\":%d, \"lat\":1.234, \"lon\",5.678, \"height\":1.23, \"temp\":24.0}";
+
+            char timeString[OT_UPTIME_STRING_SIZE];
+            otInstanceGetUptimeAsString(instance, timeString, sizeof(timeString));
+            otLogWarnPlat("%s", timeString);
+            otDeviceRole role = otThreadGetDeviceRole(instance);
+            const char* nodeRole = otThreadDeviceRoleToString(role);
+
+            const char* strdata = "{\"ID\":\"%02x%02x%02x%02x%02x%02x%02x%02x\", \"Up Time\":\"%s\", \"Count\":%d, \"Role\":\"%s\", \"Batt\":%d, \"Latitude\":1.234, \"Longitude\":5.678, \"Height\":1.23, \"Temperature\":24.0}";
              char data[256];
              sprintf(data, strdata,
 		extAddress.m8[0],
@@ -329,7 +374,7 @@ int main(int aArgc, char *aArgv[])
 		extAddress.m8[5],
 		extAddress.m8[6],
 		extAddress.m8[7],
-		count++, "P1", 100);
+		timeString, count++, nodeRole, 100);
              int32_t length = strlen(data);
 
              otError err = otMqttsnPublish(instance, (const uint8_t*)data, length, kQos1, false, &_aTopic,
