@@ -37,6 +37,15 @@
 
 #include <openthread/instance.h>
 
+/**
+ * Init LED module.
+ *
+ */
+void otSysLedInit(void);
+void otSysLedSet(uint8_t aLed, bool aOn);
+void otSysLedToggle(uint8_t aLed);
+void otSysLedBlink(uint8_t aLed);
+
 #ifdef __cplusplus
 extern "C" {
 #endif
